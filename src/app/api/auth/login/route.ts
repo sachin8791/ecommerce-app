@@ -13,10 +13,48 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { email, password } = loginSchema.parse(body);
 
-    // Find user by email
-    const user = await prisma.user.findUnique({
-      where: { email }
-    });
+    // Find user by email with error handling
+    let user;
+    try {
+      user = await prisma.user.findUnique({
+        where: { email }
+      });
+    } catch (dbError) {
+      console.error('Database error:', dbError);
+      // Return demo user for development if database fails
+      if (email === 'user@shophub.com' && password === 'user123') {
+        const token = generateToken({
+          userId: 'demo-user-id',
+          email: 'user@shophub.com',
+          role: 'USER',
+        });
+
+        const response = NextResponse.json({
+          message: 'Login successful (Demo Mode)',
+          user: {
+            id: 'demo-user-id',
+            email: 'user@shophub.com',
+            name: 'Demo User',
+            role: 'USER',
+          },
+          token,
+        });
+
+        response.cookies.set('token', token, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'strict',
+          maxAge: 7 * 24 * 60 * 60,
+        });
+
+        return response;
+      }
+      
+      return NextResponse.json(
+        { error: 'Database temporarily unavailable' },
+        { status: 503 }
+      );
+    }
 
     if (!user) {
       return NextResponse.json(

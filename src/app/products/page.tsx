@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, Suspense, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -78,7 +78,7 @@ function ProductsContent() {
     }
   };
 
-  const fetchProducts = async () => {
+  const fetchProducts = useCallback(async () => {
     setLoading(true);
     try {
       const params = new URLSearchParams({
@@ -99,11 +99,12 @@ function ProductsContent() {
         toast.error('Failed to fetch products');
       }
     } catch (error) {
-      toast.error('An error occurred');
+      console.error('Failed to fetch products:', error);
+      toast.error('Failed to fetch products');
     } finally {
       setLoading(false);
     }
-  };
+  }, [filters]);
 
   const handleAddToCart = (product: Product) => {
     addItem({

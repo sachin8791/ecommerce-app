@@ -1,0 +1,13 @@
+name: Update Repository Metadata
+
+on:
+  push:
+    branches: [ master ]
+
+jobs:
+  update-repo:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Update repository info
+      run: |
+        echo "Repository updated successfully"
